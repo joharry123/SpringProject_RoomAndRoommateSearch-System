@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.hk.roommate">
+
+	
+	
+		<select id="getLogin" resultType="loginDto" parameterType="Map" >
+			SELECT ID, NAME, ADDRESS, EMAIL, PHONE, ENABLED, ROLE 
+			FROM JOINUSER WHERE ID=#{id} AND PASSWORD=#{password} AND ENABLED='Y'
+		</select>
+	 
+		<insert id="insertUser" parameterType="loginDto">
+			INSERT INTO JOINUSER (seq,id,password,name,address,phone,email,enabled,role,regdate) VALUES 
+			(joinuser_seq.NEXTVAL,#{id},#{password},#{name},#{address},#{phone},#{email},'Y',#{role},SYSDATE)  
+		</insert>
+		
+		<select id="idchk" resultType="String" parameterType="String">   
+		SELECT ID
+		FROM JOINUSER WHERE ID=#{id}  
+		</select>
+		
+		<select id="getuserinfo" resultType="loginDto" parameterType="String">   
+		SELECT *
+		FROM JOINUSER WHERE ID=#{id}  
+		</select>
+		
+		<update id="updateUser" parameterType="loginDto">
+		UPDATE JOINUSER SET ADDRESS =#{address},PHONE =#{phone},EMAIL =#{email} WHERE ID=#{id}      
+		</update>
+		  
+		<insert id="updateroom" parameterType="RoomupdateDto">    
+		INSERT INTO ROOMINFORMATION VALUES 
+		(rminformation_r_seq.NEXTVAL,#{r_title},#{location},#{room1},#{room2},#{r_size},#{cost1},#{cost2},#{cost3},#{cost4},#{lat},#{lot},#{parking},#{stare},#{detail},0,#{roomoption},#{info},sysdate)
+		</insert>   
+		    	
+		<insert id="insertFileInfo" parameterType="fileDto">
+		 <selectKey resultType="int" keyProperty="f_seq" order="BEFORE">
+	        SELECT MAX(r_seq) FROM ROOMINFORMATION          
+	    </selectKey>   
+			INSERT INTO FILEUPDATEBOARD VALUES  
+			(#{f_seq},#{file_name},#{stored_fname},#{file_size},SYSDATE,'N')
+		</insert>      
+	    
+		<select id="getFileList" resultType="fileDto" parameterType="Map">  
+			SELECT * FROM (
+	        SELECT ROW_NUMBER () OVER(PARTITION BY FILEUPDATEBOARD.F_SEQ ORDER BY
+	        FILEUPDATEBOARD.F_SEQ DESC) AS rnum, FILEUPDATEBOARD.* FROM FILEUPDATEBOARD) 
+	        WHERE rnum=1
+		</select>
+			
+		<select id ="getRoomList" resultType="RoomupdateDto">
+		        SELECT *FROM ROOMINFORMATION
+		</select>
+		
+		<select id ="detailRoom" resultType="RoomupdateDto" parameterType="int">
+		        SELECT *FROM ROOMINFORMATION
+		        WHERE R_SEQ=#{seq}
+		</select>
+		
+		<select id ="detailFile" resultType="filedto" parameterType="int">  
+		        SELECT *FROM FILEUPDATEBOARD  
+		        WHERE F_SEQ=#{seq}
+		</select>
+		
+		<delete id="Rdel" parameterType="int">
+		DELETE FROM ROOMINFORMATION
+		WHERE R_SEQ=#{seq}
+		</delete>
+		
+		<delete id="Fdel" parameterType="int">
+		DELETE FROM FILEUPDATEBOARD
+		WHERE F_SEQ=#{seq}  
+		</delete>
+		
+		<select id="search" resultType="RoomupdateDto" parameterType="String">
+	    SELECT *FROM ROOMINFORMATION 
+		WHERE R_TITLE LIKE '%' ||  #{searchValue} || '%'  OR LOCATION LIKE '%' ||  #{searchValue} || '%' 
+		ORDER BY R_SEQ
+		</select>  
+		
+		<select id="searchFile" resultType="filedto" parameterType="Map">
+		  	SELECT * FROM (
+		  	SELECT ROW_NUMBER () OVER(PARTITION BY FILEUPDATEBOARD.F_SEQ ORDER BY
+	        FILEUPDATEBOARD.F_SEQ DESC) AS rnum, FILEUPDATEBOARD.* FROM FILEUPDATEBOARD) 
+	        WHERE rnum=1 AND F_SEQ IN  
+		        <foreach collection="r_seq" open="(" close=")" separator="," item="seq">
+		        #{seq}	          
+		        </foreach>                
+		</select> 
+	   
+	
+		<update id="interestFile" parameterType="int">
+		UPDATE FILEUPDATEBOARD SET F_DELFLAG ='Y' 
+		WHERE F_SEQ=#{seq}    
+		</update>
+		
+		<insert id="addinterest" parameterType="interestDto">
+		INSERT INTO I_BORAD VALUES 
+		(i_seq.NEXTVAL,#{i_id},#{i_roomseq},'Y')
+	    </insert>
+    
+   		<select id ="getiRoomList" parameterType="String" resultType="interestDto">
+	        SELECT *FROM I_BORAD
+	        WHERE I_ID=#{i_id}       
+		</select>   
+	
+	 	<select id ="RIlist" parameterType="Map" resultType="RoomupdateDto">
+	        SELECT *FROM ROOMINFORMATION 
+	        WHERE R_SEQ IN
+	        <foreach collection="iseq" open="(" close=")" separator="," item="r_seq">
+	        #{r_seq}
+	        </foreach>
+	 	</select>   
+		
+	    <select id ="FIlist" parameterType="Map" resultType="filedto">       
+        SELECT * FROM (
+        SELECT ROW_NUMBER () OVER(PARTITION BY FILEUPDATEBOARD.F_SEQ ORDER BY
+        FILEUPDATEBOARD.F_SEQ DESC) AS rnum, FILEUPDATEBOARD.* FROM FILEUPDATEBOARD) 
+        WHERE rnum=1 AND F_SEQ IN  
+	    <foreach collection="iseq" open="(" close=")" separator="," item="f_seq">
+	    #{f_seq}
+	    </foreach> 
+		</select>     
+	
+		<update id="delboard" parameterType="Map">
+		UPDATE ROOMMATEBOARD 
+		SET RM_DELFLAG = 'Y' 
+		WHERE RM_SEQ IN   
+		<foreach collection="seqs" open="(" close=")" separator="," item="rm_seq">
+		#{rm_seq} 
+		</foreach>
+	    </update>  
+	    
+	   <select id="roommatelist" resultType="ansDto" parameterType="Map">
+		SELECT *  
+		FROM ROOMMATEBOARD 
+		ORDER BY RM_SEQ DESC
+    	</select>
+
+		<select id="detailboard" resultType="ansDto" parameterType="int">
+		SELECT *  
+		FROM ROOMMATEBOARD     
+		WHERE RM_SEQ = #{rm_seq}  
+    	</select>  
+    	
+    	<insert id="insertrmboard"  parameterType="ansDto">
+		INSERT INTO ROOMMATEBOARD VALUES 
+		(rm_seq.NEXTVAL,#{rm_id},#{rm_location},#{rm_mf},#{rm_c},#{rm_title},#{rm_content},
+		#{rm_cost1},#{rm_cost2},#{rm_cost3},#{rm_cost4},0,sysdate)
+    	</insert>   
+    		
+	    <update id="readcount" parameterType="int">
+		<![CDATA[
+		UPDATE ROOMMATEBOARD 
+		SET READCOUNT=READCOUNT+1 
+		WHERE RM_SEQ=#{rm_seq}
+		]]>
+	   </update>
+	
+		<update id="updateboard" parameterType="ansDto">
+		UPDATE ROOMMATEBOARD 
+		SET RM_TITLE=#{rm_title}, RM_CONTENT=#{rm_content},RM_REGDATE=SYSDATE 
+		WHERE RM_SEQ=#{rm_seq}  
+	    </update>
+	      
+</mapper>      
+    
+    
+
+
+
+
+  

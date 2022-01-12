@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+   
+<configuration>  
+
+	<!-- 변수 설정 -->  
+	<typeAliases>
+		<typeAlias type="com.hk.roommate.dtos.LoginDto" alias="LoginDto"/>
+		<typeAlias type="com.hk.roommate.dtos.RoomupdateDto" alias="RoomupdateDto"/> 
+		<typeAlias type="com.hk.roommate.dtos.filedto" alias="filedto"/> 
+		<typeAlias type="com.hk.roommate.dtos.InterestDto" alias="InterestDto"/> 
+		<typeAlias type="com.hk.roommate.dtos.AnsDto" alias="AnsDto"/>   
+		    
+	</typeAliases>
+
+	<mappers>   
+	  <mapper resource="./sqls/DataMapper.xml"/>
+	</mappers>
+</configuration>
+	
+
+
+	  
+
+
+
+
+
+
+
+
+
+
+
